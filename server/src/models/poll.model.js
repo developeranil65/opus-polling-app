@@ -1,5 +1,12 @@
 import {Schema, model} from "mongoose"
 
+const optionSchema = new Schema({
+    option:{
+        type: String,
+        trim : true
+    }
+})
+
 const pollSchema = new Schema(
 	{
 		title: {
