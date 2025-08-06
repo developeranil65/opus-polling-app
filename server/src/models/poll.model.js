@@ -1,12 +1,5 @@
 import {Schema, model} from "mongoose"
 
-const optionSchema = new Schema({
-    option:{
-        type: String,
-        trim : true
-    }
-})
-
 const pollSchema = new Schema(
 	{
 		title: {
@@ -14,7 +7,11 @@ const pollSchema = new Schema(
             required: true,
             trim: true
         },
-        options: [optionSchema],
+        options: [{
+            text: { type: String, required: true },
+            votes: { type: Number, default: 0 }
+            }
+        ],
         pollCode: {
             type: String,
             unique: true,

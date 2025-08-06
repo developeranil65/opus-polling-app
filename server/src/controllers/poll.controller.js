@@ -12,10 +12,10 @@ const createPoll = asyncHandler(async (req, res)=>{
     // Input Validation
     
     // generate poll code of the poll
-    const pollCode = await generatePollCode();
+    const pollCode = generatePollCode();
 
     // generate and upload Qr code of the poll in cloudinary
-    const pollUrl = `${process.env.CORS_ORIGIN}/api/v1/polls/${pollCode}/vote`
+    const pollUrl = `${process.env.CORS_ORIGIN}/api/v1/votes/${pollCode}/vote`
     const pollqr = await generateQRCodeAndUpload(pollUrl);
 
     // Create entry of poll in db
