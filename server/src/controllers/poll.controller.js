@@ -40,6 +40,65 @@ const createPoll = asyncHandler(async (req, res)=>{
     )
 })
 
+const getPollByCode = asyncHandler(async (req, res) => {
+  const { code } = req.params;
+
+  const poll = await Poll.findOne({ pollCode: code }).select(
+    "-voters -createdBy -__v"
+  );
+
+  if (!poll) {
+    throw new ApiError(404, "Poll not found");
+  }
+
+  // Return options without vote counts
+  const strippedOptions = poll.options.map(opt => ({
+    text: opt.text
+  }));
+
+  const response = {
+    _id: poll._id,
+    title: poll.title,
+    options: strippedOptions,
+    pollCode: poll.pollCode,
+    qrUrl: poll.qrUrl,
+    isMultipleChoice: poll.isMultipleChoice,
+    isPublicResult: poll.isPublicResult,
+    expiresAt: poll.expiresAt,
+    createdAt: poll.createdAt,
+  };
+
+  res.status(200).json(new ApiResponse(200, response, "Poll fetched successfully"));
+});
+
+const getPollResults = asyncHandler(async (req, res) => {
+  const { code } = req.params;
+
+  const poll = await Poll.findOne({ pollCode: code }).select("options title");
+
+  if (!poll) {
+    throw new ApiError(404, "Poll not found");
+  }
+
+  const totalVotes = poll.options.reduce((sum, opt) => sum + (opt.votes || 0), 0);
+
+  const results = poll.options.map(opt => ({
+    text: opt.text,
+    votes: opt.votes || 0,
+    percentage: totalVotes > 0 ? ((opt.votes / totalVotes) * 100).toFixed(1) : "0.0"
+  }));
+
+  res.status(200).json(
+    new ApiResponse(200, {
+      title: poll.title,
+      totalVotes,
+      results
+    }, "Live results fetched successfully")
+  );
+});
+
 export{
-    createPoll
+    createPoll,
+    getPollByCode,
+    getPollResults
 }
