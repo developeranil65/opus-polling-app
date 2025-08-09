@@ -97,8 +97,31 @@ const getPollResults = asyncHandler(async (req, res) => {
   );
 });
 
+const deletePoll = asyncHandler(async (req, res) => {
+  const { code } = req.params;
+
+  // Find poll
+  const poll = await Poll.findOne({ pollCode: code });
+  if (!poll) {
+    throw new ApiError(404, "Poll not found");
+  }
+
+  // Check ownership
+  if (!poll.createdBy || poll.createdBy.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You are not authorized to delete this poll");
+  }
+
+  // Delete poll
+  await Poll.deleteOne({ _id: poll._id });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, "Poll deleted successfully"));
+});
+
 export{
     createPoll,
     getPollByCode,
-    getPollResults
+    getPollResults,
+    deletePoll
 }

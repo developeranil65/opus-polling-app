@@ -3,6 +3,7 @@ import { createPoll } from "../controllers/poll.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { getPollByCode } from "../controllers/poll.controller.js";
 import { getPollResults } from "../controllers/poll.controller.js";
+import { deletePoll } from "../controllers/poll.controller.js";
 
 const router = Router();
 
@@ -11,5 +12,6 @@ router.get("/:code/results", getPollResults);
 
 // secured routes
 router.route("/").post(verifyJWT, createPoll);
+router.delete("/polls/:code", verifyJWT, deletePoll);
 
 export default router;
