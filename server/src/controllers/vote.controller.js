@@ -21,9 +21,11 @@ const votePoll = asyncHandler(async (req, res) => {
   if (!poll) throw new ApiError(404, "Poll not found");
 
   // Check poll expiry
-  if (poll.expiresAt && new Date(poll.expiresAt) < new Date()) {
-    throw new ApiError(403, "Poll has expired");
-  }
+  // if (poll.expiresAt && new Date(poll.expiresAt) < new Date()) {
+  //   throw new ApiError(403, "Poll has expired");
+  // }
+
+  checkPollExpiry(poll);
 
   // Validate selected options
   const validOptionTexts = poll.options.map(opt => opt.text);
