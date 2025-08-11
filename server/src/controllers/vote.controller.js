@@ -4,6 +4,12 @@ import { ApiError } from "../utils/ApiError.js";
 import { Poll } from "../models/poll.model.js";
 import { Vote } from "../models/vote.model.js";
 
+const checkPollExpiry = (poll) => {
+  if (poll.expiresAt && new Date(poll.expiresAt) < new Date()) {
+    throw new ApiError(403, "Poll has expired");
+  }
+};
+
 const votePoll = asyncHandler(async (req, res) => {
   const { pollCode } = req.params;
   const { selectedOptions } = req.body;
@@ -21,14 +27,10 @@ const votePoll = asyncHandler(async (req, res) => {
   if (!poll) throw new ApiError(404, "Poll not found");
 
   // Check poll expiry
-  // if (poll.expiresAt && new Date(poll.expiresAt) < new Date()) {
-  //   throw new ApiError(403, "Poll has expired");
-  // }
-
   checkPollExpiry(poll);
 
   // Validate selected options
-  const validOptionTexts = poll.options.map(opt => opt.text);
+  const validOptionTexts = poll.options.map((opt) => opt.text);
   for (const option of selectedOptions) {
     if (!validOptionTexts.includes(option)) {
       throw new ApiError(400, `Invalid option: ${option}`);
@@ -40,7 +42,7 @@ const votePoll = asyncHandler(async (req, res) => {
   }
 
   // Prevent duplicate vote from same IP
-  const alreadyVoted = poll.voters.find(voter => voter.ip === voterIP);
+  const alreadyVoted = poll.voters.find((voter) => voter.ip === voterIP);
   if (alreadyVoted) {
     throw new ApiError(403, "You have already voted in this poll");
   }
@@ -50,7 +52,7 @@ const votePoll = asyncHandler(async (req, res) => {
     poll: poll._id,
     selectedOptions,
     voterIP,
-    user: req.user ? req.user._id : null
+    user: req.user ? req.user._id : null,
   });
 
   // Increment vote counts
@@ -65,6 +67,19 @@ const votePoll = asyncHandler(async (req, res) => {
 
   // Save updated poll
   await poll.save();
+
+  // --- WebSocket Broadcast ---
+  const broadcast = req.app.get("broadcast");
+  if (typeof broadcast === "function") {
+    broadcast({
+      type: "VOTE_UPDATE",
+      pollCode: poll.pollCode,
+      results: poll.options.map((opt) => ({
+        text: opt.text,
+        votes: opt.votes,
+      })),
+    });
+  }
 
   return res
     .status(200)
