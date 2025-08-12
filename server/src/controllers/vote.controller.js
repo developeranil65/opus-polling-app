@@ -71,10 +71,10 @@ const votePoll = asyncHandler(async (req, res) => {
   // --- WebSocket Broadcast ---
   const broadcast = req.app.get("broadcast");
   if (typeof broadcast === "function") {
-    broadcast({
+    broadcast(poll.pollCode, {
       type: "VOTE_UPDATE",
       pollCode: poll.pollCode,
-      results: poll.options.map((opt) => ({
+      results: poll.options.map(opt => ({
         text: opt.text,
         votes: opt.votes,
       })),

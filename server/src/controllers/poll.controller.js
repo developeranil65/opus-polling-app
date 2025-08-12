@@ -15,7 +15,7 @@ const createPoll = asyncHandler(async (req, res)=>{
     const pollCode = generatePollCode();
 
     // generate and upload Qr code of the poll in cloudinary
-    const pollUrl = `${process.env.CORS_ORIGIN}/api/v1/votes/${pollCode}/vote`
+    const pollUrl = `${process.env.FRONTEND_URL}/vote/${pollCode}`;
     const pollqr = await generateQRCodeAndUpload(pollUrl);
 
     // Create entry of poll in db
@@ -34,7 +34,7 @@ const createPoll = asyncHandler(async (req, res)=>{
         throw new ApiError(500, "Something went wrong while creating the poll");
     }
         
-    // return the user with poll code and Qr code;
+    // return the user with poll code and Qr code
     return res.status(201).json(
         new ApiResponse(201, poll, "Poll created successfully")
     )

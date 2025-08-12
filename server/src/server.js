@@ -12,25 +12,47 @@ const server = createServer(app);
 
 // Create WebSocket server
 const wss = new WebSocketServer({ server });
-const clients = new Set();
+
+// Map<pollCode, Set<WebSocket>>
+const pollRooms = new Map();
 
 wss.on("connection", (ws) => {
   console.log("Client connected");
-  clients.add(ws);
-
-  ws.on("close", () => {
-    console.log("Client disconnected");
-    clients.delete(ws);
-  });
 
   ws.on("message", (msg) => {
-    console.log("Message from client:", msg.toString());
+    try {
+      const data = JSON.parse(msg);
+
+      // Client joins a specific poll room
+      if (data.type === "JOIN_POLL" && data.pollCode) {
+        const code = data.pollCode;
+
+        if (!pollRooms.has(code)) {
+          pollRooms.set(code, new Set());
+        }
+        pollRooms.get(code).add(ws);
+
+        ws.pollCode = code; // store for cleanup
+        console.log(`Client joined poll: ${code}`);
+      }
+    } catch (err) {
+      console.error("Invalid WS message", err);
+    }
+  });
+
+  ws.on("close", () => {
+    if (ws.pollCode && pollRooms.has(ws.pollCode)) {
+      pollRooms.get(ws.pollCode).delete(ws);
+      console.log(`Client left poll: ${ws.pollCode}`);
+    }
   });
 });
 
-// Broadcast function for sending messages to all clients
-const broadcast = (data) => {
+// Broadcast function for sending messages only to poll's clients
+const broadcastToPoll = (pollCode, data) => {
   const strData = JSON.stringify(data);
+  const clients = pollRooms.get(pollCode) || new Set();
+
   for (const client of clients) {
     if (client.readyState === 1) {
       client.send(strData);
@@ -38,8 +60,8 @@ const broadcast = (data) => {
   }
 };
 
-// Make broadcast available in controllers via app
-app.set("broadcast", broadcast);
+// Make broadcast function available in controllers via app
+app.set("broadcast", broadcastToPoll);
 
 // Connect DB and start server
 connectDB()
@@ -56,5 +78,4 @@ connectDB()
   })
   .catch((error) => {
     console.error("MONGODB connection failed!", error);
-  }
-);
+  });
