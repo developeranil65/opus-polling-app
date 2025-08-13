@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import { ApiError } from "./utils/ApiError.js";
 
 const app = express();
 
@@ -26,7 +27,6 @@ app.use(cookieParser());
 import userRouter from './routes/user.route.js';
 import pollRouter from './routes/poll.route.js';
 import voteRouter from './routes/vote.route.js';
-import { ApiError } from "./utils/ApiError.js";
 
 // routes declaration
 app.use("/api/v1/users", userRouter);

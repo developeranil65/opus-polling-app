@@ -1,17 +1,16 @@
 import { Router } from "express";
-import { createPoll } from "../controllers/poll.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
-import { getPollByCode } from "../controllers/poll.controller.js";
-import { getPollResults } from "../controllers/poll.controller.js";
-import { deletePoll } from "../controllers/poll.controller.js";
+import { createPoll, getPollByCode, getPollResults, deletePoll, getMyPolls } from "../controllers/poll.controller.js";
 
 const router = Router();
 
-router.get("/:code", getPollByCode);
-router.get("/:code/results", getPollResults);
-
-// secured routes
-router.route("/").post(verifyJWT, createPoll);
+// Secured routes
+router.post("/", verifyJWT, createPoll);
 router.delete("/polls/:code", verifyJWT, deletePoll);
+router.get("/my-polls", verifyJWT, getMyPolls);
+
+// Public routes
+router.get("/:code/results", getPollResults);
+router.get("/:code", getPollByCode);
 
 export default router;

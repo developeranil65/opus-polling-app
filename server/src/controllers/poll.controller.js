@@ -74,26 +74,44 @@ const getPollByCode = asyncHandler(async (req, res) => {
 const getPollResults = asyncHandler(async (req, res) => {
   const { code } = req.params;
 
-  const poll = await Poll.findOne({ pollCode: code }).select("options title");
+  // Include isPublicResult and createdBy for visibility check
+  const poll = await Poll.findOne({ pollCode: code })
+    .select("options title isPublicResult createdBy");
 
   if (!poll) {
     throw new ApiError(404, "Poll not found");
   }
 
-  const totalVotes = poll.options.reduce((sum, opt) => sum + (opt.votes || 0), 0);
+  // Check if results are public OR the requester is the poll creator
+  const isCreator = req.user && poll.createdBy.toString() === req.user._id.toString();
+  if (!poll.isPublicResult && !isCreator) {
+    throw new ApiError(403, "Results for this poll are private");
+  }
+
+  const totalVotes = poll.options.reduce(
+    (sum, opt) => sum + (opt.votes || 0),
+    0
+  );
 
   const results = poll.options.map(opt => ({
     text: opt.text,
     votes: opt.votes || 0,
-    percentage: totalVotes > 0 ? ((opt.votes / totalVotes) * 100).toFixed(1) : "0.0"
+    percentage:
+      totalVotes > 0
+        ? ((opt.votes / totalVotes) * 100).toFixed(1)
+        : "0.0",
   }));
 
   res.status(200).json(
-    new ApiResponse(200, {
-      title: poll.title,
-      totalVotes,
-      results
-    }, "Live results fetched successfully")
+    new ApiResponse(
+      200,
+      {
+        title: poll.title,
+        totalVotes,
+        results,
+      },
+      "Live results fetched successfully"
+    )
   );
 });
 
@@ -119,9 +137,20 @@ const deletePoll = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, null, "Poll deleted successfully"));
 });
 
+const getMyPolls = asyncHandler(async (req, res) => {
+  const polls = await Poll.find({ createdBy: req.user._id })
+    .select("title pollCode createdAt expiresAt isPublicResult")
+    .sort({ createdAt: -1 });
+
+  res.status(200).json(
+    new ApiResponse(200, polls, "Your polls fetched successfully")
+  );
+});
+
 export{
     createPoll,
     getPollByCode,
     getPollResults,
-    deletePoll
+    deletePoll,
+    getMyPolls
 }
