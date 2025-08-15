@@ -1,30 +1,54 @@
-# 🗳️ Opus Polling App
+# 📊 Opus polling Backend
 
-Opus Polling App is a backend service for creating, managing, and voting in polls with live result tracking.  
-Built with **Node.js**, **Express**, and **MongoDB**.
+A **real-time poll creation and voting system** backend built with **Node.js, Express, MongoDB, and WebSockets**.  
+This service supports **QR-based voting**, **role-based access control**, and **live vote updates** via WebSockets.
 
 ---
 
 ## 🚀 Features
-- Create polls with multiple options  
-- Single-choice or multiple-choice voting  
-- Set poll expiry dates  
-- Prevent duplicate voting by IP  
-- View poll details without revealing votes  
-- Live results with absolute numbers & percentages  
-- Auto-generated QR codes for polls  
+
+- **JWT Authentication** (with refresh tokens)
+- **Create Polls** with:
+  - Title & options
+  - Multiple choice toggle
+  - Public/Private results toggle
+  - Expiration date
+  - Auto-generated short poll code
+  - QR code upload to Cloudinary
+- **Vote System**:
+  - Prevent duplicate voting via IP tracking
+  - Real-time vote updates via WebSockets
+  - QR code & poll code-based voting
+- **Poll Management**:
+  - View polls you created
+  - Delete polls
+  - Toggle result visibility
+- **Live Results API** (with percentage calculation)
+- **Secure APIs** with authentication middleware
+- **Environment-based config** for production readiness
 
 ---
 
-## 📦 Tech Stack
-- **Node.js** + **Express**
-- **MongoDB** + **Mongoose**
-- **Cloudinary** (QR code uploads)
-- **Postman** (API testing)
+## 🛠 Tech Stack
+
+**Backend**:
+- Node.js
+- Express.js
+- MongoDB with Mongoose
+- WebSocket (`ws`)
+
+**Other Libraries**:
+- `jsonwebtoken` – JWT auth
+- `bcryptjs` – Password hashing
+- `qrcode` – QR code generation
+- `cloudinary` – Image storage
+- `dotenv` – Environment variables
+- `zod` – Input validation
 
 ---
 
 ## 📂 Repository
+
 [GitHub Repository](https://github.com/developeranil65/opus-polling-app.git)
 
 ---
