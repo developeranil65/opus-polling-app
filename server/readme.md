@@ -85,7 +85,7 @@ npm run dev
 ```
 5. **The backend will start**
 ```bash
-http://localhost:3000
+`http://localhost:{port_number_in_env}`
 ```
 
 📜 License
